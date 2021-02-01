@@ -1,0 +1,52 @@
+---
+title: "Intro to time series wrangling & visualization"
+author: "Laurel Wee"
+date: "2/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(lubridate)
+library(tsibble)
+library(feasts)
+library(slider)
+```
+
+## Read in the data
+
+```{r}
+toolik <- read_csv(here("data",
+                         "toolikweather.csv"))
+
+#ggplot(data = toolik, aes(x = date, y = mean_airtemp))+
+  #geom_line()
+```
+
+### Convert this into a tsibble
+
+```{r}
+toolik_ts <- toolik %>% 
+  mutate(date = lubridate::mdy(date)) %>% 
+  as_tsibble(key = NULL, index = date)
+```
+
+```{r}
+ggplot(data = toolik_ts, aes(x = date, y = mean_airtemp))+
+  geom_line()
+```
+## Use `index_by()` function to aggregate time series information by intervals we specify.  
+
+```{r}
+toolik_mon <- toolik_ts %>% 
+  index_by(yr_mo = ~yearmonth(.)) %>% 
+  summarize(monthly_mean_temp = mean(mean_airtemp, na.rm = TRUE))
+
+ggplot(data = toolik_mon, aes(x = yr_mo, y = monthly_mean_temp))+
+  geom_line()
+```
+
+
+
